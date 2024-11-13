@@ -1,54 +1,49 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 10f;
-    public float horizontalRange = 10.0f;
-
+    private float horizontalInput;
+    private float speed = 20.0f;
+    private float xRange = 20;
     public GameObject projectilePrefab;
-    public float HorizontalInput
-    {
-        get => Input.GetAxis("Horizontal");
-    }
-
-    bool CanShoot
-    {
-        get => Input.GetKeyDown(KeyCode.Space);
-    }
 
 
+    // Update is called once per frame
     void Update()
     {
-        transform.Translate(HorizontalInput * speed * Time.deltaTime * Vector3.right);
-        CheckBoundary();
-        ShootHandler();
-    }
-
-    void ShootHandler()
-    {
-        if (!CanShoot) return;
-        Instantiate(projectilePrefab, transform.position, projectilePrefab.transform.rotation);
-    }
-
-
-    void CheckBoundary()
-    {
-        if (transform.position.x < -horizontalRange)
+        // Check for left and right bounds
+        if (transform.position.x < -xRange)
         {
-            SetBoundary(-horizontalRange);
-            return;
+            transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
         }
 
-        if (transform.position.x > horizontalRange)
+        if (transform.position.x > xRange)
         {
-            SetBoundary(horizontalRange);
+            transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
         }
-    }
 
-    void SetBoundary(float value)
-    {
-        transform.position = new Vector3(value, transform.position.y, transform.position.z);
+        // Player movement left to right
+        horizontalInput = Input.GetAxis("Horizontal");
+        transform.Translate(Vector3.right * Time.deltaTime * speed * horizontalInput);
+
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // No longer necessary to Instantiate prefabs
+            // Instantiate(projectilePrefab, transform.position, projectilePrefab.transform.rotation);
+
+            // Get an object object from the pool
+            GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject();
+            if (pooledProjectile != null)
+            {
+                pooledProjectile.SetActive(true); // activate it
+                pooledProjectile.transform.position = transform.position; // position it at player
+            }
+        }
+
+
+
     }
 }
